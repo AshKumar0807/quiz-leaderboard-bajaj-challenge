@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Leaderboard System — SRM</title>
+  <style>
+    /* ── Reset & Variables ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d2e;
+      --surface2: #252840;
+      --border: #2e3155;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --green: #00c48c;
+      --red: #ff4d6d;
+      --text: #e8e8f0;
+      --text-muted: #8888aa;
+      --font: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1d2e 0%, #252840 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 48px; height: 48px;
+      background: var(--accent);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    header h1 { font-size: 1.6rem; font-weight: 700; }
+    header p  { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+
+    .badge {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Main Layout ─────────────────────────────────────────────────────── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:not(:disabled):hover {
+      background: #7b74ff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #fff;
+    }
+    .btn-success:not(:disabled):hover {
+      background: #00d9a0;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+    .btn-danger:not(:disabled):hover {
+      background: rgba(255, 77, 109, 0.12);
+    }
+
+    /* ── Progress Bar ────────────────────────────────────────────────────── */
+    .progress-wrap {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-bg {
+      background: var(--surface2);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .poll-log {
+      margin-top: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.7;
+    }
+
+    /* ── Stats Row ───────────────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Leaderboard Table ───────────────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--surface2);
+    }
+
+    th {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(46, 49, 85, 0.5);
+      font-size: 0.95rem;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: rgba(108, 99, 255, 0.06); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .rank-badge {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .rank-1 { background: rgba(255, 215, 0, 0.15); color: var(--gold); }
+    .rank-2 { background: rgba(192, 192, 192, 0.15); color: var(--silver); }
+    .rank-3 { background: rgba(205, 127, 50, 0.15); color: var(--bronze); }
+    .rank-n { background: var(--surface2); color: var(--text-muted); }
+
+    .participant-name {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .score-pill {
+      background: rgba(108, 99, 255, 0.12);
+      color: var(--accent);
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .score-bar-wrap {
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .score-bar-bg {
+      background: var(--surface2);
+      border-radius: 99px;
+      height: 6px;
+    }
+
+    .score-bar-fill {
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      height: 100%;
+      border-radius: 99px;
+    }
+
+    /* ── Alert ───────────────────────────────────────────────────────────── */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .alert-success {
+      background: rgba(0, 196, 140, 0.12);
+      border: 1px solid rgba(0, 196, 140, 0.3);
+      color: var(--green);
+    }
+
+    .alert-error {
+      background: rgba(255, 77, 109, 0.12);
+      border: 1px solid rgba(255, 77, 109, 0.3);
+      color: var(--red);
+    }
+
+    /* ── Empty State ─────────────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-state p { font-size: 0.95rem; }
+
+    /* ── Spinner ─────────────────────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">🏆</div>
+  <div>
+    <h1>Quiz Leaderboard System</h1>
+    <p>SRM Internship Assignment — Real-time Score Aggregation</p>
+  </div>
+  <span class="badge" id="status-badge">Idle</span>
+</header>
+
+<main>
+
+  <!-- Alert Banner -->
+  <div class="alert alert-success" id="alert-success">
+    <span>✅</span> <span id="alert-success-msg"></span>
+  </div>
+  <div class="alert alert-error" id="alert-error">
+    <span>❌</span> <span id="alert-error-msg"></span>
+  </div>
+
+  <!-- Control Panel -->
+  <div class="card">
+    <div class="card-title">⚙️ Control Panel</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-start" onclick="startPipeline()">
+        <span>▶</span> Generate Leaderboard
+      </button>
+      <button class="btn btn-success" id="btn-submit" onclick="submitLeaderboard()" disabled>
+        <span>📤</span> Submit Result
+      </button>
+      <button class="btn btn-danger" id="btn-reset" onclick="resetPipeline()">
+        <span>↺</span> Reset
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label">
+        <span id="progress-text">Initialising...</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar"></div>
+      </div>
+      <div class="poll-log" id="poll-log"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-participants">—</div>
+      <div class="stat-label">Participants</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-label">Total Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-polls">—</div>
+      <div class="stat-label">Polls Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-events">—</div>
+      <div class="stat-label">Unique Events</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-dupes">—</div>
+      <div class="stat-label">Duplicates Removed</div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Table -->
+  <div class="card">
+    <div class="card-title">🏅 Leaderboard</div>
+    <div id="leaderboard-content">
+      <div class="empty-state">
+        <div class="icon">📊</div>
+        <p>Click <strong>Generate Leaderboard</strong> to fetch and process quiz results.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Quiz Leaderboard System · SRM Internship Assignment · Built with Spring Boot + Java 17
+</footer>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────────
+  let leaderboardData = null;
+  let isRunning = false;
+
+  // ── UI Helpers ───────────────────────────────────────────────────────────────
+  function setBadge(text, color) {
+    const b = document.getElementById('status-badge');
+    b.textContent = text;
+    b.style.color = color || '';
+  }
+
+  function showAlert(type, msg) {
+    hideAlerts();
+    const el = document.getElementById('alert-' + type);
+    document.getElementById('alert-' + type + '-msg').textContent = msg;
+    el.style.display = 'flex';
+    setTimeout(() => el.style.display = 'none', 8000);
+  }
+
+  function hideAlerts() {
+    ['success', 'error'].forEach(t =>
+      document.getElementById('alert-' + t).style.display = 'none');
+  }
+
+  function setProgress(pct, label) {
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-text').textContent = label;
+  }
+
+  function appendLog(msg) {
+    const log = document.getElementById('poll-log');
+    const ts = new Date().toLocaleTimeString();
+    log.innerHTML += `<span style="color:#6c63ff">[${ts}]</span> ${msg}\n`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setButtons(running, hasData, submitted) {
+    document.getElementById('btn-start').disabled  = running;
+    document.getElementById('btn-submit').disabled = running || !hasData || submitted;
+    document.getElementById('btn-reset').disabled  = running;
+
+    if (running) {
+      document.getElementById('btn-start').innerHTML =
+        '<span class="spinner"></span> Processing...';
+    } else {
+      document.getElementById('btn-start').innerHTML = '▶ Generate Leaderboard';
+    }
+  }
+
+  // ── Leaderboard Render ───────────────────────────────────────────────────────
+  function renderLeaderboard(result) {
+    const data   = result.leaderboard;
+    const maxScore = data.length > 0 ? data[0].totalScore : 1;
+
+    document.getElementById('stats-row').style.display = 'grid';
+    document.getElementById('stat-participants').textContent = data.length;
+    document.getElementById('stat-total').textContent = result.totalScore.toLocaleString();
+    document.getElementById('stat-polls').textContent = result.totalPolls;
+    document.getElementById('stat-events').textContent = result.uniqueEventsProcessed;
+    document.getElementById('stat-dupes').textContent = result.totalDuplicatesRemoved;
+
+    if (data.length === 0) {
+      document.getElementById('leaderboard-content').innerHTML =
+        '<div class="empty-state"><div class="icon">🤔</div><p>No participants found in the data.</p></div>';
+      return;
+    }
+
+    const rankClass = r => r === 1 ? 'rank-1' : r === 2 ? 'rank-2' : r === 3 ? 'rank-3' : 'rank-n';
+    const rankEmoji = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    const avatarColor = (name) => {
+      const colors = ['#6c63ff','#ff6584','#00c48c','#ffd700','#f97316','#3b82f6','#a855f7','#ec4899'];
+      let hash = 0;
+      for (let c of name) hash = c.charCodeAt(0) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
+    };
+
+    const rows = data.map(e => {
+      const barWidth = Math.round((e.totalScore / maxScore) * 100);
+      const color = avatarColor(e.participant);
+      return `
+        <tr>
+          <td><span class="rank-badge ${rankClass(e.rank)}">${rankEmoji(e.rank)}</span></td>
+          <td>
+            <div class="participant-name">
+              <div class="avatar" style="background:${color}">${e.participant.charAt(0).toUpperCase()}</div>
+              ${escHtml(e.participant)}
+            </div>
+          </td>
+          <td><span class="score-pill">${e.totalScore.toLocaleString()}</span></td>
+          <td>
+            <div class="score-bar-wrap">
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" style="width:${barWidth}%"></div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('leaderboard-content').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Participant</th>
+              <th>Total Score</th>
+              <th>Relative</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return str.replace(/[&<>"']/g, m =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ── API Calls ────────────────────────────────────────────────────────────────
+  async function startPipeline() {
+    if (isRunning) return;
+    isRunning = true;
+    leaderboardData = null;
+    hideAlerts();
+    setButtons(true, false, false);
+    setBadge('Processing…', '#6c63ff');
+
+    const progressWrap = document.getElementById('progress-wrap');
+    progressWrap.style.display = 'block';
+    document.getElementById('poll-log').innerHTML = '';
+    document.getElementById('stats-row').style.display = 'none';
+    document.getElementById('leaderboard-content').innerHTML =
+      '<div class="empty-state"><div class="icon">⏳</div><p>Fetching quiz data across 10 polls (≈50 seconds)...</p></div>';
+
+    // Simulate poll progress in UI while backend runs
+    let pollCount = 0;
+    const totalPolls = 10;
+    const interval = setInterval(() => {
+      if (pollCount < totalPolls) {
+        pollCount++;
+        const pct = Math.round((pollCount / totalPolls) * 85);
+        setProgress(pct, `Poll ${pollCount}/${totalPolls} complete`);
+        appendLog(`Poll ${pollCount} of ${totalPolls} fetched`);
+      }
+    }, 5200); // slightly over 5s delay
+
+    try {
+      const res = await fetch('/api/start', { method: 'POST' });
+      clearInterval(interval);
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.message || 'Unknown error');
+      }
+
+      setProgress(100, 'Processing complete!');
+      appendLog('✅ All polls complete. Leaderboard computed.');
+
+      leaderboardData = body.data;
+      renderLeaderboard(leaderboardData);
+      setBadge('Ready to Submit', '#00c48c');
+      showAlert('success', 'Leaderboard generated successfully! Review and click Submit.');
+
+    } catch (err) {
+      clearInterval(interval);
+      setBadge('Error', '#ff4d6d');
+      showAlert('error', 'Failed: ' + err.message);
+      appendLog('❌ Error: ' + err.message);
+    } finally {
+      isRunning = false;
+      setButtons(false, !!leaderboardData, leaderboardData?.submitted || false);
+    }
+  }
+
+  async function submitLeaderboard() {
+    if (!leaderboardData) return;
+    setButtons(false, true, false);
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('btn-submit').innerHTML =
+      '<span class="spinner"></span> Submitting...';
+    setBadge('Submitting…', '#ffd700');
+
+    try {
+      const res  = await fetch('/api/submit', { method: 'POST' });
+      const body = await res.json();
+
+      if (!res.ok || !body.success) throw new Error(body.message || 'Submission failed');
+
+      const sr = body.data;
+      if (sr.isCorrect) {
+        showAlert('success', `✅ ${sr.message} | Submitted Total: ${sr.submittedTotal}`);
+        setBadge('Submitted ✓', '#00c48c');
+      } else {
+        showAlert('error', `❌ ${sr.message} | Expected: ${sr.expectedTotal}, Got: ${sr.submittedTotal}`);
+        setBadge('Incorrect', '#ff4d6d');
+      }
+      if (leaderboardData) leaderboardData.submitted = true;
+
+    } catch (err) {
+      showAlert('error', 'Submit failed: ' + err.message);
+      setBadge('Error', '#ff4d6d');
+    } finally {
+      setButtons(false, !!leaderboardData, true);
+      document.getElementById('btn-submit').innerHTML = '📤 Submit Result';
+    }
+  }
+
+  async function resetPipeline() {
+    try {
+      await fetch('/api/reset', { method: 'POST' });
+    } catch (_) {}
+
+    leaderboardData = null;
+    isRunning = false;
+    hideAlerts();
+    setButtons(false, false, false);
+    setBadge('Idle');
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('stats-row').style.display = 'none';
+    document.getElementById('leaderboard-content').innerHTML =
+      '<div class="empty-state"><div class="icon">📊</div><p>Click <strong>Generate Leaderboard</strong> to fetch and process quiz results.</p></div>';
+    document.getElementById('poll-log').innerHTML = '';
+  }
+</script>
+</body>
+</html>
