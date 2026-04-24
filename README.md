@@ -1,10 +1,10 @@
-# 🏆 Quiz Leaderboard System
+# Quiz Leaderboard System
 
 A Spring Boot backend application that consumes a live quiz API, deduplicates event data across multiple polls, aggregates participant scores, and generates a correct leaderboard — built as part of the **Bajaj Finserv Health × SRM Internship Assignment**.
 
 ---
 
-## 📌 Problem Statement
+## Challenge Statement
 
 The external validator API simulates a quiz show where participants earn scores across rounds. Due to distributed system behavior, **the same event data may appear in multiple API polls**. The core challenge is to:
 
@@ -16,7 +16,7 @@ The external validator API simulates a quiz show where participants earn scores 
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -30,7 +30,7 @@ The external validator API simulates a quiz show where participants earn scores 
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 src/main/java/com/srm/quiz/
@@ -67,7 +67,7 @@ src/main/resources/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Edit `src/main/resources/application.properties`:
 
@@ -82,7 +82,7 @@ quiz.api.read-timeout-ms=15000
 
 ---
 
-## 🔄 How It Works
+## How It Works
 
 ### Pipeline (triggered by `POST /api/start`)
 
@@ -123,7 +123,7 @@ A `HashSet<String>` tracks seen keys across all polls. If the same `(roundId, pa
 
 ---
 
-## 🌐 REST API Reference
+## REST API Reference
 
 ### `POST /api/start`
 Triggers the full pipeline: 10 polls + deduplication + aggregation. Takes ~50 seconds.
@@ -213,7 +213,7 @@ cd quiz-leaderboard-system
 
 ---
 
-## 🧪 Testing the API Manually
+## Testing the API Manually
 
 ```bash
 # Trigger pipeline
@@ -231,7 +231,7 @@ curl -X POST http://localhost:8080/api/reset
 
 ---
 
-## 🛡️ Error Handling
+## Error Handling
 
 All errors are returned in a consistent format:
 
@@ -252,21 +252,3 @@ All errors are returned in a consistent format:
 
 ---
 
-## 📋 Assignment Requirements Checklist
-
-- ✅ Polls the validator API exactly 10 times (poll=0 to poll=9)
-- ✅ Mandatory 5-second delay between each poll
-- ✅ Deduplication using `roundId + participant` composite key
-- ✅ Correct score aggregation per participant
-- ✅ Leaderboard sorted by `totalScore` descending
-- ✅ Grand total score computed across all participants
-- ✅ Submit endpoint called exactly once (guarded by `AtomicBoolean`)
-
----
-
-## 👤 Author
-
-**Name:** Ashwani Kumar
-**Reg No:** RA2311003030424  
-**Institution:** SRM Institute of Science and Technology  
-**Assignment:** Bajaj Finserv Health — Java Qualifier, April 2026
