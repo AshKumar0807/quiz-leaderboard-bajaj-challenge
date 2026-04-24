@@ -172,7 +172,7 @@ Clears cached state so the pipeline can be re-run from scratch.
 
 ---
 
-## 🖥️ Frontend UI
+## Frontend UI
 
 The app ships with a built-in web interface served at `http://localhost:8080`.
 
@@ -185,7 +185,7 @@ Features:
 
 ---
 
-## 🏃 Running the Application
+## Running the Application
 
 ### Prerequisites
 - Java 17+
