@@ -251,4 +251,7 @@ All errors are returned in a consistent format:
 | Polling interrupted | 500 Internal Server Error |
 
 ---
+## Sample Output
+
+![output](ss/result.png)
 
